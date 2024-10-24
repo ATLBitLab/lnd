@@ -1,0 +1,40 @@
+name: "Build Portable Binary File"
+description: "Build Portable Binary File."
+
+on:
+  push:
+    branches:
+      - cshared
+  pull_request:
+    branches:
+      - cshared
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Build mobile-rpc
+      run: make mobile-rpc
+
+    - name: Build cgo
+      run: make cgo
+
+    - name: Set GOPATH
+      run: export GOPATH=${{ github.workspace }}
+
+    - name: Upload binary to release
+      uses: actions/upload-release-asset@v1
+      with:
+        name: cgo
+        upload_url: ${{ steps.upload-binary.outputs.upload_url }}
+        asset_path: "${GOPATH}/github.com/lightningnetwork/lnd/mobile/build/cgo"
